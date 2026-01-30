@@ -16,8 +16,7 @@ class KodeGenerator
             return $parts[0] ?? '';
         }
 
-        $badanUsaha = ['PT', 'CV', 'UD', 'KOPERASI'];
-
+        $badanUsaha = ['PT'];
 
         $kode = [];
         $start = 0;

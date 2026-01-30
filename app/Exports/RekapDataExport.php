@@ -30,6 +30,8 @@ class RekapDataExport implements
     protected bool $isPK = false;
     protected array $counter = [];
 
+    protected int $currentDataRow = 2;
+
     protected ?string $currentMonth = null;
     protected int $startMonthRow = 2;
     
@@ -105,32 +107,43 @@ class RekapDataExport implements
      * ===================================================== */
     public function map($row): array
     {
-
         $produk = $row->produk_id;
         $this->counter[$produk] = ($this->counter[$produk] ?? 0) + 1;
 
         $month = $row->tanggal->format('Y-m');
 
-        // INIT pertama kali
+        // INIT pertama
         if ($this->currentMonth === null) {
             $this->currentMonth = $month;
-            $this->startMonthRow = 2;
         }
 
+        /**
+         * JIKA BULAN BERGANTI
+         * simpan hasil bulan lama
+         */
         if ($this->currentMonth !== $month) {
-            $this->monthRows[] =[
-                'month' => $this->currentMonth,
-                'end' => $this->startMonthRow - 1,
-                'sum' => $this->monthlySum,
-            ];
-        }
-        $this->currentMonth = $month;
-        $this->monthlySum = [
-            'netto_kebun' => 0,
-            'netto' => 0,
-            'susut' => 0,
-        ];
 
+            $this->monthRows[] = [
+                'month' => $this->currentMonth,
+                'start' => $this->startMonthRow,
+                'end'   => $this->currentDataRow - 1,
+                'sum'   => $this->monthlySum,
+            ];
+
+            // reset accumulator
+            $this->monthlySum = [
+                'netto_kebun' => 0,
+                'netto' => 0,
+                'susut' => 0,
+            ];
+
+            $this->currentMonth = $month;
+            $this->startMonthRow = $this->currentDataRow;
+        }
+
+        // ===============================
+        // BUILD DATA ROW (TIDAK DIUBAH)
+        // ===============================
         $data = [
             $this->counter[$produk],
             $row->tanggal,
@@ -158,14 +171,18 @@ class RekapDataExport implements
 
         $data[] = $row->keterangan;
 
+        // ===============================
+        // AKUMULASI SETELAH DATA MASUK
+        // ===============================
         $this->monthlySum['netto_kebun'] += $row->netto_kebun;
         $this->monthlySum['netto']       += $row->netto;
         $this->monthlySum['susut']       += $row->susut ?? 0;
 
-        $this->startMonthRow++;
+        $this->currentDataRow++;
 
         return $data;
     }
+
 
     /* =====================================================
      * HEADINGS
@@ -300,26 +317,41 @@ class RekapDataExport implements
                 if ($this->currentMonth !== null) {
                     $this->monthRows[] =[
                         'month' => $this->currentMonth,
-                        'end' => $sheet->getHighestRow(),
+                        'start' => $this->startMonthRow,
+                        'end' => $this->currentDataRow - 1,
                         'sum' => $this->monthlySum,
                     ];
                 }
 
                 foreach($this->monthRows as $monthData){
-                    $inserAt = $monthData['end'] + 1 + $rowOffset;
+                    $insertAt = $monthData['end'] + 1 + $rowOffset;
 
-                    $sheet->insertNewRowBefore($inserAt, 1);
+                    $sheet->insertNewRowBefore($insertAt, 1);
 
-                    $sheet->setCellValue("I{$inserAt}", $monthData['sum']['netto_kebun']);
-                    $sheet->setCellValue("L{$inserAt}", $monthData['sum']['netto']);
-                    $sheet->setCellValue("M{$inserAt}", $monthData['sum']['susut']);
+                    $start = $monthData['start'] + $rowOffset;
+                    $end   = $monthData['end'] + $rowOffset;
 
                     $sheet->setCellValue(
-                        "N{$inserAt}",
-                        "=IF(I{$inserAt} = 0,0,M{$inserAt}/I{$inserAt}*100)"
+                        "I{$insertAt}",
+                        "=SUM(I{$start}:I{$end})"
                     );
 
-                    $sheet->getStyle("A{$inserAt}:{$highestCol}{$inserAt}")
+                    $sheet->setCellValue(
+                        "L{$insertAt}",
+                        "=SUM(L{$start}:L{$end})"
+                    );
+
+                    $sheet->setCellValue(
+                        "M{$insertAt}",
+                        "=SUM(M{$start}:M{$end})"
+                    );
+
+                    $sheet->setCellValue(
+                        "N{$insertAt}",
+                        "=IF(I{$insertAt} = 0,0,M{$insertAt}/I{$insertAt}*100)"
+                    );
+
+                    $sheet->getStyle("A{$insertAt}:{$highestCol}{$insertAt}")
                         ->applyFromArray([
                             'font' => ['bold' =>true],
                             'fill' => [

@@ -61,7 +61,6 @@ class RincianRekapDataTable
                     ->searchable()
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: false),
-
                 /**
                  * 🔹 TIMBANGAN
                  */
@@ -103,24 +102,12 @@ class RincianRekapDataTable
 
                 /**
                  * 🔹 SUSUT %
-                 * (virtual, tidak perlu kolom database)
                  */
                 TextColumn::make('susut_persen')
                     ->label('Susut (%)')
                     ->suffix('%')
                     ->color(fn ($state) => $state > 0 ? 'success' : 'danger')
                     ->weight('bold'),
-                // TextColumn::make('susut_persen')
-                //     ->label('Susut (%)')
-                //     ->getStateUsing(fn ($record) =>
-                //         $record->netto_kebun > 0
-                //             ? round(($record->susut / $record->netto_kebun) * 100, 2)
-                //             : 0
-                //     )
-                //     ->suffix('%')
-                //     ->color(fn ($state) => $state > 0 ? 'success' : 'danger')
-                //     ->weight('bold')
-                //     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('ffa')
                     ->label('FFA')
