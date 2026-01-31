@@ -14,10 +14,10 @@ class ListKendaraans extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-                ->color('success')
-                ->label('Tambah Kendaraan')
-                ->icon(Heroicon::Plus),
+            // CreateAction::make()
+            //     ->color('success')
+            //     ->label('Tambah Kendaraan')
+            //     ->icon(Heroicon::Plus),
         ];
     }
 

@@ -36,6 +36,35 @@ class KodeGenerator
         ]);
     }
 
+    public static function fromNamaPengangkut (string $nama): string
+    {
+        $nama = strtoupper(trim(preg_replace('/[^A-Z0-9\s]/', '', $nama)));
+        $parts = array_values(array_filter(explode(' ', $nama)));
+
+        if (empty($parts)) {
+            return '';
+        }
+
+        $badanUsaha = ['PT', 'CV', 'UD'];
+
+        if (in_array($parts[0], $badanUsaha)) {
+            array_shift($parts);
+        }
+
+        if (empty($parts)) {
+            return '';
+        }
+
+        if (count($parts) === 1) {
+            return $parts[0];
+        }
+
+        return implode('', array_map(
+            fn($w) => substr($w, 0, 1),
+            $parts
+        ));
+    }
+
     // untuk generate otomatis nama produk jika belum ada di database
     public static function fromNamaProduk (string $nama): string
     {

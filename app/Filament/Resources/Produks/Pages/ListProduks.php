@@ -14,10 +14,10 @@ class ListProduks extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-                ->icon(Heroicon::Plus)
-                ->label('Tambah Produk')
-                ->color('success'),
+            // CreateAction::make()
+            //     ->icon(Heroicon::Plus)
+            //     ->label('Tambah Produk')
+            //     ->color('success'),
         ];
     }
 }

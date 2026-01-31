@@ -14,10 +14,10 @@ class ListMitras extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-                ->icon(Heroicon::Plus)
-                ->label('Tambah Mitra')
-                ->color('success'),
+            // CreateAction::make()
+            //     ->icon(Heroicon::Plus)
+            //     ->label('Tambah Mitra')
+            //     ->color('success'),
         ];
     }
 

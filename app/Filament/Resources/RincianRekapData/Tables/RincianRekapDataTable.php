@@ -38,26 +38,25 @@ class RincianRekapDataTable
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('mitra.nama_mitra')
-                    ->label('Mitra')
+                    ->label('Nama Rekanan')
                     ->searchable()
-                    ->wrap()
+                    // ->wrap() 
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('pengangkut.nama_pengangkut')
                     ->label('Nama Pengangkutan')
                     ->searchable()
-                    ->wrap()
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('kendaraan.no_pol')
-                    ->label('No Polisi')
+                    ->label('No. Kendaraan')
                     ->searchable()
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('kendaraan.nama_supir')
-                    ->label('Supir')
+                    ->label('Nama Supir')
                     ->searchable()
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: false),

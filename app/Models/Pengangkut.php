@@ -15,7 +15,7 @@ class Pengangkut extends Model
     {
         static::creating(function ($pengangkut) {
             if (empty($pengangkut->kode)) {
-                $kode = KodeGenerator::fromNama($pengangkut->nama_pengangkut);
+                $kode = KodeGenerator::fromNamaPengangkut($pengangkut->nama_pengangkut);
                 $pengangkut->kode = KodeGenerator::makeUnique(
                     $kode,
                     self::class,

@@ -14,10 +14,10 @@ class ListPengangkuts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-                ->icon(Heroicon::Plus)
-                ->label('Tambah Pengangkut')
-                ->color('success'),
+            // CreateAction::make()
+            //     ->icon(Heroicon::Plus)
+            //     ->label('Tambah Pengangkut')
+            //     ->color('success'),
         ];
     }
 }
