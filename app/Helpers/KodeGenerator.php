@@ -7,16 +7,24 @@ use App\Models\RekapData;
 
 class KodeGenerator
 {
-    public static function fromNama(string $nama): string
+    private const BADAN_USAHA = ['PT', 'CV'];
+
+    private static function normalizeNama(string $nama): array
     {
         $nama = strtoupper(trim(preg_replace('/[^A-Z0-9\s]/', '', $nama)));
-        $parts = array_values(array_filter(explode(' ', $nama)));
+        return array_values(array_filter(explode(' ', $nama)));
+    }
+
+    public static function fromNama(string $nama): string
+    {
+        
+        $parts = self::normalizeNama($nama);
 
         if (count($parts) <= 1) {
             return $parts[0] ?? '';
         }
 
-        $badanUsaha = ['PT'];
+        $badanUsaha = self::BADAN_USAHA;
 
         $kode = [];
         $start = 0;
@@ -38,14 +46,13 @@ class KodeGenerator
 
     public static function fromNamaPengangkut (string $nama): string
     {
-        $nama = strtoupper(trim(preg_replace('/[^A-Z0-9\s]/', '', $nama)));
-        $parts = array_values(array_filter(explode(' ', $nama)));
+        $parts = self::normalizeNama($nama);
 
         if (empty($parts)) {
             return '';
         }
 
-        $badanUsaha = ['PT', 'CV', 'UD'];
+        $badanUsaha = self::BADAN_USAHA;
 
         if (in_array($parts[0], $badanUsaha)) {
             array_shift($parts);
@@ -68,8 +75,7 @@ class KodeGenerator
     // untuk generate otomatis nama produk jika belum ada di database
     public static function fromNamaProduk (string $nama): string
     {
-        $nama = strtoupper(trim(preg_replace('/[^A-Z0-9\s]/', '', $nama)));
-        $parts = array_values(array_filter(explode(' ', $nama)));
+        $parts = self::normalizeNama($nama);
 
         if (empty($parts)) {
             return '';
@@ -78,6 +84,10 @@ class KodeGenerator
         // Ambil inisial dari setiap kata dari huruf pertama.
         return implode('', array_map(fn ($w) => substr($w, 0, 1), $parts));
     }
+
+    /**
+     * @param class-string<\Illuminate\Database\Eloquent\Model> $model
+     */
 
     public static function makeUnique(string $kode, string $model, string $column): string
     {
