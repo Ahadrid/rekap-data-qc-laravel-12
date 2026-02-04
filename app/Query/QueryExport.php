@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports;
+namespace App\Query;
 use App\Models\RekapData;
 
 class QueryExport

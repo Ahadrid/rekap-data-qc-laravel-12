@@ -2,8 +2,9 @@
 
 namespace App\Exports;
 
-use App\Exports\QueryExport;
+use App\Query\QueryExport;
 use App\Models\Produk;
+
 use Maatwebsite\Excel\Concerns\{
     FromQuery,
     WithMapping,
