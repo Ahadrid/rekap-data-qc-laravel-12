@@ -15,6 +15,8 @@ use Maatwebsite\Excel\Concerns\{
 };
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -110,7 +112,7 @@ class RekapDataExport implements
         // ===============================
         $data = [
             $this->counter[$produk],
-            $row->tanggal,
+            ExcelDate::dateTimeToExcel($row->tanggal),
             $row->mitra?->nama_mitra,
             $row->pengangkut?->nama_pengangkut,
             $row->kendaraan?->no_pol,
@@ -179,7 +181,7 @@ class RekapDataExport implements
     public function columnFormats(): array
     {
         $formats = [
-            'B' => NumberFormat::FORMAT_DATE_YYYYMMDD,
+            'B' => 'DD-MMM-YYYY',
             'G' => '#,##0',
             'H' => '#,##0',
             'I' => '#,##0',
@@ -261,7 +263,10 @@ class RekapDataExport implements
                     }
                 }
 
-                $range = "A1:{$highestCol}{$highestRow}";
+                //Style tanggal agar jadi align left dengan format 'DD-MMM-YYYY'
+                $sheet->getStyle("B2:B{$highestRow}")
+                    ->getAlignment()
+                    ->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
                 // 3. Border
                 $highestRow = $sheet->getHighestRow();

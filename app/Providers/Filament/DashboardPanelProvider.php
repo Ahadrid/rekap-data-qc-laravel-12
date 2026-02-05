@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Widgets\StatsOverview;
 use BackedEnum;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -36,15 +37,18 @@ class DashboardPanelProvider extends PanelProvider
             ->id('dashboard')
             ->path('')
             ->globalSearch(false)
-            ->registration()
+            // ->registration()
             ->passwordReset()
             ->emailVerification()
             ->profile(false)
             ->login()
-            ->brandName('Rekap QC')
+            ->brandLogo(asset('images/logo-baru.svg'))
+            ->brandName('null')
+            ->brandLogoHeight('50px')
             ->colors([
                 'primary' => Color::Amber,
             ])
+            ->favicon(asset('favicon.ico'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

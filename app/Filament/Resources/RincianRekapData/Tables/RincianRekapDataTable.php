@@ -122,7 +122,6 @@ class RincianRekapDataTable
 
                 TextColumn::make('keterangan')
                     ->label('Catatan')
-                    ->wrap()
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: false),
             ])
