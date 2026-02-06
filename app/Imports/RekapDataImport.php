@@ -50,8 +50,8 @@ class RekapDataImport implements ToModel, WithHeadingRow, WithStartRow
             'mitra_id'     => $master['mitra']->id,
             'produk_id'    => $master['produk']->id,
             'kendaraan_id' => $master['kendaraan']->id,
-            'bruto_kirim'  => (float) ($row['arrival_unload'] ?? 0),
-            'tara_kirim'   => (float) ($row['departure_unload'] ?? 0),
+            // 'bruto_kirim'  => (float) ($row['arrival_unload'] ?? 0),
+            // 'tara_kirim'   => (float) ($row['departure_unload'] ?? 0),
         ]);
 
         if ($exists) {
