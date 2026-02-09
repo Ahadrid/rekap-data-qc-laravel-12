@@ -9,7 +9,7 @@ class Mitra extends Model
 {
     protected $table = 'mitra';
 
-    protected $fillable = ['nama_mitra', 'kode_mitra', 'is_active'];
+    protected $fillable = ['nama_mitra', 'kode_mitra', 'tipe_mitra', 'is_active'];
 
     protected static function booted()
     {

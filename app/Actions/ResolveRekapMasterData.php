@@ -10,11 +10,11 @@ use App\Services\MitraTypeDetector;
 
 class ResolveRekapMasterData
 {
-    const DEFAULT_PENGANGKUT = '';
-
     public static function resolve(array $row): array
     {
-        // MITRA
+        /* ===============================
+         * MITRA
+         * =============================== */
         $namaMitra = trim($row['mitra']);
         $mitra = Mitra::firstOrCreate(
             ['nama_mitra' => $namaMitra],
@@ -27,7 +27,9 @@ class ResolveRekapMasterData
             ]);
         }
 
-        // PRODUK
+        /* ===============================
+         * PRODUK
+         * =============================== */
         $rawProduk  = trim($row['produk'] ?? '');
         $namaProduk = trim(preg_replace('/^\[.*?\]\s*/', '', $rawProduk));
 
@@ -35,15 +37,25 @@ class ResolveRekapMasterData
             'nama_produk' => $namaProduk,
         ]);
 
-        // PENGANGKUT
-        $namaPengangkut = trim($row['transporter_name'] ?? '')
-            ?: self::DEFAULT_PENGANGKUT;
+        /* ===============================
+         * PENGANGKUT
+         * LOGIKA UTAMA ADA DI SINI 🔥
+         * =============================== */
+        $namaPengangkut = trim($row['transporter_name'] ?? '');
 
-        $pengangkut = Pengangkut::firstOrCreate([
-            'nama_pengangkut' => $namaPengangkut,
-        ]);
+        if ($namaPengangkut === '') {
+            // 🔥 fallback → MITRA sebagai pengangkut
+            $namaPengangkut = $mitra->nama_mitra;
+        }
 
-        // KENDARAAN
+        $pengangkut = Pengangkut::firstOrCreate(
+            ['nama_pengangkut' => $namaPengangkut],
+            ['is_active' => true]
+        );
+
+        /* ===============================
+         * KENDARAAN
+         * =============================== */
         $kendaraan = Kendaraan::firstOrCreate(
             ['no_pol' => trim($row['mobil_pengangkut'])],
             [
@@ -52,8 +64,11 @@ class ResolveRekapMasterData
             ]
         );
 
+        // jaga konsistensi
         if (! $kendaraan->pengangkut_id) {
-            $kendaraan->update(['pengangkut_id' => $pengangkut->id]);
+            $kendaraan->update([
+                'pengangkut_id' => $pengangkut->id
+            ]);
         }
 
         return compact('mitra', 'produk', 'pengangkut', 'kendaraan');

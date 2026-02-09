@@ -46,7 +46,6 @@ class RincianRekapDataTable
                 TextColumn::make('pengangkut.nama_pengangkut')
                     ->label('Nama Pengangkutan')
                     ->searchable()
-                    ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('kendaraan.no_pol')

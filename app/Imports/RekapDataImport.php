@@ -45,13 +45,18 @@ class RekapDataImport implements ToModel, WithHeadingRow, WithStartRow
         $master = ResolveRekapMasterData::resolve($row);
         $calc   = RekapDataCalculator::calculate($row);
 
+        // Cek Duplikasi 
         $exists = RekapDataImportService::isDuplicate([
             'tanggal'      => $tanggal->toDateString(),
             'mitra_id'     => $master['mitra']->id,
             'produk_id'    => $master['produk']->id,
             'kendaraan_id' => $master['kendaraan']->id,
-            // 'bruto_kirim'  => (float) ($row['arrival_unload'] ?? 0),
-            // 'tara_kirim'   => (float) ($row['departure_unload'] ?? 0),
+            'bruto_kirim'  => (float) ($row['arrival_unload'] ?? 0),
+            'tara_kirim'   => (float) ($row['departure_unload'] ?? 0),
+            'netto_kebun'   => (float) ($row['netto_unload'] ?? 0),
+            'bruto'   => (float) ($row['berat_masuk'] ?? 0),
+            'tara'   => (float) ($row['berat_keluar'] ?? 0),
+            'netto'   => (float) ($row['berat_bersih'] ?? 0),
         ]);
 
         if ($exists) {

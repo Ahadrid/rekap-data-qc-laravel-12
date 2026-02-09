@@ -21,6 +21,6 @@ class MitraTypeDetector
             }
         }
 
-        return 'supplier_luar';
+        return 'suplier_luar';
     }
 }
