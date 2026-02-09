@@ -2,19 +2,21 @@
 
 namespace App\Exports;
 
+use App\Query\QueryExport;
 use App\Models\Produk;
-use App\Models\RekapData;
+
 use Maatwebsite\Excel\Concerns\{
     FromQuery,
     WithMapping,
     WithHeadings,
     WithColumnFormatting,
-    ShouldAutoSize,
     WithStyles,
     WithEvents
 };
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -24,7 +26,6 @@ class RekapDataExport implements
     WithMapping,
     WithHeadings,
     WithColumnFormatting,
-    ShouldAutoSize,
     WithStyles,
     WithEvents
 {
@@ -32,157 +33,163 @@ class RekapDataExport implements
     protected bool $isPK = false;
     protected array $counter = [];
 
+    protected int $currentDataRow = 2;
+
+    protected ?string $currentMonth = null;
+    protected int $startMonthRow = 2;
+    
+    protected array $monthlySum = [
+        'netto_kebun' => 0,
+        'netto' => 0,
+        'susut' => 0,
+    ];
+
+    protected array $monthRows = [];
+
     public function __construct(array $filters = [])
     {
         $this->filters = $filters;
 
-        if (isset($filters['produk_id'])) {
+        if (! empty($filters['produk_id'])) {
             $this->isPK = Produk::where('id', $filters['produk_id'])
-            ->where(function ($q){
-                $q->where('nama_produk', 'ILIKE', '%PK%')
-                    ->orWhere('kode_produk', 'PK');
-            })
-            ->exists();
+                ->where(fn ($q) =>
+                    $q->where('nama_produk', 'ILIKE', '%PK%')
+                      ->orWhere('kode_produk', 'PK')
+                )
+                ->exists();
         }
     }
 
-    /**
-     * Query utama
-     */
-    protected int $rowNumber = 0;
-
+    /* =====================================================
+     * QUERY
+     * ===================================================== */
     public function query()
     {
-        return RekapData::query()
-            ->with(['mitra', 'produk', 'kendaraan', 'pengangkut'])
-
-            // filter produk
-            ->when($this->filters['produk_id'] ?? null,
-                fn ($q, $v) => $q->where('produk_id', $v)
-            )
-
-            // filter MODE EXPORT
-            ->when($this->filters['mode'] ?? null, function ($q, $mode) {
-                match ($mode) {
-                    'suplier_luar' =>
-                        $q->whereHas('mitra', fn ($m) =>
-                            $m->where('tipe_mitra', 'suplier_luar')
-                        ),
-
-                    'bim_rengat' =>
-                        $q->whereHas('mitra', fn ($m) =>
-                            $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
-                              ->where('nama_mitra', 'ILIKE', '%RENGAT%')
-                        ),
-
-                    'bim_siak' =>
-                        $q->whereHas('mitra', fn ($m) =>
-                            $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
-                              ->where('nama_mitra', 'ILIKE', '%SIAK%')
-                        ),
-
-                    'mul' =>
-                        $q->whereHas('mitra', fn ($m) =>
-                            $m->where('nama_mitra', 'ILIKE', '%MUTIARA UNGGUL LESTARI%')
-                        ),
-
-                    default => null,
-                };
-            })
-
-            ->orderBy('tanggal');
+        return QueryExport::build($this->filters);
     }
 
-    /**
-     * Mapping data per baris
-     */
-
+    /* =====================================================
+     * MAP
+     * ===================================================== */
     public function map($row): array
     {
         $produk = $row->produk_id;
         $this->counter[$produk] = ($this->counter[$produk] ?? 0) + 1;
 
-        $this->rowNumber++;
+        $month = $row->tanggal->format('Y-m');
 
+        // INIT pertama
+        if ($this->currentMonth === null) {
+            $this->currentMonth = $month;
+        }
+
+        /**
+         * JIKA BULAN BERGANTI
+         * simpan hasil bulan lama
+         */
+        if ($this->currentMonth !== $month) {
+
+            $this->monthRows[] = [
+                'month' => $this->currentMonth,
+                'start' => $this->startMonthRow,
+                'end'   => $this->currentDataRow - 1,
+                'sum'   => $this->monthlySum,
+            ];
+
+            // reset accumulator
+            $this->monthlySum = [
+                'netto_kebun' => 0,
+                'netto' => 0,
+                'susut' => 0,
+            ];
+
+            $this->currentMonth = $month;
+            $this->startMonthRow = $this->currentDataRow;
+        }
+
+        // ===============================
+        // BUILD DATA ROW (TIDAK DIUBAH)
+        // ===============================
         $data = [
             $this->counter[$produk],
-            $row->tanggal,
+            ExcelDate::dateTimeToExcel($row->tanggal),
             $row->mitra?->nama_mitra,
             $row->pengangkut?->nama_pengangkut,
             $row->kendaraan?->no_pol,
             $row->kendaraan?->nama_supir,
-            
+
             $row->bruto_kirim,
             $row->tara_kirim,
             $row->netto_kebun,
-            
+
             $row->bruto,
             $row->tara,
             $row->netto,
-            
+
             $row->susut ?? 0,
             $row->susut_persen,
-            
         ];
 
         if (! $this->isPK) {
             $data[] = $row->ffa;
             $data[] = $row->dobi;
         }
+
         $data[] = $row->keterangan;
+
+        // ===============================
+        // AKUMULASI SETELAH DATA MASUK
+        // ===============================
+        $this->monthlySum['netto_kebun'] += $row->netto_kebun;
+        $this->monthlySum['netto']       += $row->netto;
+        $this->monthlySum['susut']       += $row->susut ?? 0;
+
+        $this->currentDataRow++;
 
         return $data;
     }
 
-    /**
-     * Header Excel_toggle
-     */
+
+    /* =====================================================
+     * HEADINGS
+     * ===================================================== */
     public function headings(): array
     {
         $headings = [
-            'No',
-            'Tanggal',
-            'Nama Rekanan',
-            'Nama Pengangkutan',
-            'No. Kendaraan',
-            'Nama Supir',
-            
-            'Bruto Kirim',
-            'Tara Kirim',
-            'Netto Kebun',
-            
-            'Bruto',
-            'Tara',
-            'Netto',
-            
-            'Susut',
-            'Susut (%)',            
+            'No', 'Tanggal', 'Nama Rekanan', 'Nama Pengangkutan',
+            'No. Kendaraan', 'Nama Supir',
+
+            'Bruto Kirim', 'Tara Kirim', 'Netto Kebun',
+            'Bruto', 'Tara', 'Netto',
+
+            'Susut', 'Susut (%)',
         ];
+
         if (! $this->isPK) {
             $headings[] = 'FFA';
             $headings[] = 'Dobi';
         }
+
         $headings[] = 'Catatan';
 
         return $headings;
     }
 
-    /**
-     * Format kolom Excel
-     */
+    /* =====================================================
+     * FORMAT
+     * ===================================================== */
     public function columnFormats(): array
     {
         $formats = [
-            'B' => NumberFormat::FORMAT_DATE_DDMMYYYY,
-
+            'B' => 'DD-MMM-YYYY',
             'G' => '#,##0',
             'H' => '#,##0',
             'I' => '#,##0',
             'J' => '#,##0',
             'K' => '#,##0',
             'L' => '#,##0',
-            'M' => '#,##0',
-            'N' => '#,##0.00',
+            'M' => '0;-0;0',
+            'N' => '0.00;-0.00;0.00',
         ];
 
         if (! $this->isPK) {
@@ -193,20 +200,17 @@ class RekapDataExport implements
         return $formats;
     }
 
+    /* =====================================================
+     * STYLE
+     * ===================================================== */
     public function styles(Worksheet $sheet): array
     {
-        // Tinggi header
         $sheet->getRowDimension(1)->setRowHeight(32);
-
-        // Freeze header
-        $sheet->freezePane('A2');
+        $sheet->freezePane('A1');
 
         return [
             1 => [
-                'font' => [
-                    'bold' => true,
-                    'color' => ['rgb' => '000000'],
-                ],
+                'font' => ['bold' => true],
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical'   => 'center',
@@ -214,14 +218,15 @@ class RekapDataExport implements
                 ],
                 'fill' => [
                     'fillType' => 'solid',
-                    'startColor' => [
-                        'argb' => 'A9D08E', // Green Accent 6 Lighter 40% => A9D08E
-                    ],
+                    'startColor' => ['argb' => 'A9D08E'],
                 ],
             ],
         ];
     }
 
+    /* =====================================================
+     * EVENTS
+     * ===================================================== */
     public function registerEvents(): array
     {
         return [
@@ -229,19 +234,26 @@ class RekapDataExport implements
 
                 $sheet = $event->sheet->getDelegate();
 
-                foreach (['G', 'H', 'I', 'J', 'K', 'L'] as $column) {
-                    $sheet->getColumnDimension($column)->setAutoSize(false);
-                    $sheet->getColumnDimension($column)->setWidth(13);
+                // 1. Kolom berat (fixed)
+                foreach (['G','H','I','J','K','L'] as $col) {
+                    $sheet->getColumnDimension($col)->setWidth(12);
                 }
 
-                foreach (['M', 'N'] as $column) {
-                    $sheet->getColumnDimension($column)->setAutoSize(false);
-                    $sheet->getColumnDimension($column)->setWidth(10);
+                foreach (['M','N'] as $col) {
+                    $sheet->getColumnDimension($col)->setWidth(10);
                 }
 
-                // Area data (dinamis)
                 $highestRow    = $sheet->getHighestRow();
-                $highestColumn = $sheet->getHighestColumn();
+                
+                // 2. Auto size kolom lainnya
+                $highestCol = $sheet->getHighestColumn();
+                $fixed = ['G','H','I','J','K','L','M','N'];
+
+                foreach (range('A', $highestCol) as $col) {
+                    if (! in_array($col, $fixed)) {
+                        $sheet->getColumnDimension($col)->setAutoSize(true);
+                    }
+                }
 
                 //kolom M = susut
                 for ($row= 2; $row <= $highestRow; $row++) { 
@@ -251,19 +263,75 @@ class RekapDataExport implements
                     }
                 }
 
-                $range = "A1:{$highestColumn}{$highestRow}";
+                //Style tanggal agar jadi align left dengan format 'DD-MMM-YYYY'
+                $sheet->getStyle("B2:B{$highestRow}")
+                    ->getAlignment()
+                    ->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
-                $sheet->getStyle($range)->applyFromArray([
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => Border::BORDER_THIN,
-                            'color' => [
-                                'rgb' => 'D9D9D9', // abu-abu muda middle => D9D9D9
+                // 3. Border
+                $highestRow = $sheet->getHighestRow();
+                $sheet->getStyle("A1:{$highestCol}{$highestRow}")
+                    ->applyFromArray([
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => Border::BORDER_THIN,
+                                'color' => ['rgb' => 'D9D9D9'],
                             ],
                         ],
-                    ],
-                ]);
-            },
+                    ]);
+                
+                $rowOffset = 0;
+
+                // Simpan Bulan Terakhir
+                if ($this->currentMonth !== null) {
+                    $this->monthRows[] =[
+                        'month' => $this->currentMonth,
+                        'start' => $this->startMonthRow,
+                        'end' => $this->currentDataRow - 1,
+                        'sum' => $this->monthlySum,
+                    ];
+                }
+
+                foreach($this->monthRows as $monthData){
+                    $insertAt = $monthData['end'] + 1 + $rowOffset;
+
+                    $sheet->insertNewRowBefore($insertAt, 1);
+
+                    $start = $monthData['start'] + $rowOffset;
+                    $end   = $monthData['end'] + $rowOffset;
+
+                    $sheet->setCellValue(
+                        "I{$insertAt}",
+                        "=SUM(I{$start}:I{$end})"
+                    );
+
+                    $sheet->setCellValue(
+                        "L{$insertAt}",
+                        "=SUM(L{$start}:L{$end})"
+                    );
+
+                    $sheet->setCellValue(
+                        "M{$insertAt}",
+                        "=SUM(M{$start}:M{$end})"
+                    );
+
+                    $sheet->setCellValue(
+                        "N{$insertAt}",
+                        "=IF(I{$insertAt} = 0,0,M{$insertAt}/I{$insertAt}*100)"
+                    );
+
+                    $sheet->getStyle("A{$insertAt}:{$highestCol}{$insertAt}")
+                        ->applyFromArray([
+                            'font' => ['bold' =>true],
+                            'fill' => [
+                                'fillType' => 'solid',
+                                'startColor' => ['argb' => 'FFFF00'], // Kuning terang
+                            ],
+                        ]);
+
+                    $rowOffset++;
+                }
+            }
         ];
     }
 }
