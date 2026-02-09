@@ -43,7 +43,7 @@ class DashboardPanelProvider extends PanelProvider
             ->profile(false)
             ->login()
             ->brandLogo(asset('images/logo-baru.svg'))
-            ->brandName('null')
+            ->brandName(null)
             ->brandLogoHeight('50px')
             ->colors([
                 'primary' => Color::Amber,

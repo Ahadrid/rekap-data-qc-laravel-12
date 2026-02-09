@@ -26,6 +26,7 @@ class MitrasTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('tipe_mitra')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 IconColumn::make('is_active')
