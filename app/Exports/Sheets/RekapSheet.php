@@ -19,11 +19,12 @@ class RekapSheet implements FromCollection, WithTitle, WithEvents
 {
     protected array $filters;
     protected Collection $pengangkuts;
-    protected array $mergeCells = []; // Menyimpan koordinat merge cells
-    protected array $borderRanges = []; // Menyimpan koordinat untuk border
-    protected array $percentCells = []; // Menyimpan koordinat cell untuk susut %
-    protected array $headerCells = []; // Menyimpan koordinat header untuk bold
-    protected array $redBorderColumns = []; // Menyimpan koordinat border merah
+    protected array $mergeCells = [];
+    protected array $borderRanges = [];
+    protected array $percentCells = [];
+    protected array $headerCells = [];
+    protected array $redBorderColumns = [];
+    protected array $tahunCells = []; // Menyimpan koordinat judul tahun
 
     public function __construct(array $filters)
     {
@@ -112,9 +113,18 @@ class RekapSheet implements FromCollection, WithTitle, WithEvents
 
         for ($tahun = $tahunMulai; $tahun <= $tahunAkhir; $tahun++) {
             // ===============================
-            // JUDUL TAHUN
+            // JUDUL TAHUN (MERGE & BOLD)
             // ===============================
+            $tahunRow = $currentRow;
             $rows->push(["TAHUN {$tahun}"]);
+            
+            // Merge judul tahun sepanjang tabel pengangkut
+            $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($kolomPengangkut);
+            $this->mergeCells[] = "A{$tahunRow}:{$lastCol}{$tahunRow}";
+            
+            // Simpan koordinat tahun untuk styling (bold + background)
+            $this->tahunCells[] = "A{$tahunRow}:{$lastCol}{$tahunRow}";
+            
             $currentRow++;
             
             $rows->push($this->emptyRow($kolomPengangkut));
@@ -361,6 +371,31 @@ class RekapSheet implements FromCollection, WithTitle, WithEvents
                     $sheet->getStyle($range)
                         ->getFont()
                         ->setBold(true);
+                }
+                
+                // Apply styling untuk judul tahun (bold + background + border + center)
+                foreach ($this->tahunCells as $range) {
+                    $sheet->getStyle($range)->applyFromArray([
+                        'font' => [
+                            'bold' => true,
+                            'size' => 14,
+                            'color' => ['rgb' => 'FFFFFF'], // Warna text putih
+                        ],
+                        'fill' => [
+                            'fillType' => Fill::FILL_SOLID,
+                            'startColor' => ['rgb' => '92D050'], // Background hijau
+                        ],
+                        'alignment' => [
+                            'horizontal' => Alignment::HORIZONTAL_CENTER,
+                            'vertical' => Alignment::VERTICAL_CENTER,
+                        ],
+                    ]);
+                    
+                    // Set tinggi baris untuk judul tahun
+                    preg_match('/(\d+)/', $range, $matches);
+                    if (isset($matches[1])) {
+                        $sheet->getRowDimension($matches[1])->setRowHeight(25);
+                    }
                 }
                 
                 // Apply center alignment untuk merge cells (judul pengangkut dan ALL)
