@@ -17,11 +17,7 @@ class PengangkutSheet extends RekapDataExport implements WithTitle
 
     public function title(): string
     {
-        $title = $this->pengangkut->kode_nama
-            ? $this->pengangkut->kode_nama . '' . $this->pengangkut->kode
-            : $this->pengangkut->kode;
-
-        return str($title)->limit(31)->toString();
+        return str($this->pengangkut->kode)->limit(31)->toString();
     }
 
     public function query()
