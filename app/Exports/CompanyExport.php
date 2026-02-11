@@ -48,6 +48,8 @@ class CompanyExport implements WithMultipleSheets
 
                     'mul' =>
                         $m->where('nama_mitra', 'ILIKE', '%MUTIARA UNGGUL LESTARI%'),
+
+                    default => null,
                 };
             });
         })
