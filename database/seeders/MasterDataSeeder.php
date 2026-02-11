@@ -10,17 +10,17 @@ class MasterDataSeeder extends Seeder
     public function run(): void
     {
         // 1. Seed Produk (Mass Insert Oke)
-        DB::table('produk')->insert([
-            ['nama_produk' => 'Crude Palm Oil', 'kode_produk' => 'CPO', 'is_active' => true, 'created_at' => now()],
-            ['nama_produk' => 'Palm Kernel', 'kode_produk' => 'PK', 'is_active' => true, 'created_at' => now()],
-        ]);
+        // DB::table('produk')->insert([
+        //     ['nama_produk' => 'Crude Palm Oil', 'kode_produk' => 'CPO', 'is_active' => true, 'created_at' => now()],
+        //     ['nama_produk' => 'Palm Kernel', 'kode_produk' => 'PK', 'is_active' => true, 'created_at' => now()],
+        // ]);
 
-        // 2. Seed Mitra (Mass Insert Oke)
-        DB::table('mitra')->insert([
-            ['nama_mitra' => 'PT Berlian Inti Mekar - Siak', 'kode_mitra' => 'PT BIMS','tipe_mitra' => 'perusahaan', 'is_active' => true, 'created_at' => now()],
-            ['nama_mitra' => 'PT Berlian Inti Mekar - Rengat', 'kode_mitra' => 'PT BIMR', 'tipe_mitra' => 'perusahaan', 'is_active' => true, 'created_at' => now()],
-            ['nama_mitra' => 'PT Mutiara Unggul Lestari', 'kode_mitra' => 'PT MUL', 'tipe_mitra' => 'perusahaan', 'is_active' => true, 'created_at' => now()],
-        ]);
+        // // 2. Seed Mitra (Mass Insert Oke)
+        // DB::table('mitra')->insert([
+        //     ['nama_mitra' => 'PT Berlian Inti Mekar - Siak', 'kode_mitra' => 'PT BIMS','tipe_mitra' => 'perusahaan', 'is_active' => true, 'created_at' => now()],
+        //     ['nama_mitra' => 'PT Berlian Inti Mekar - Rengat', 'kode_mitra' => 'PT BIMR', 'tipe_mitra' => 'perusahaan', 'is_active' => true, 'created_at' => now()],
+        //     ['nama_mitra' => 'PT Mutiara Unggul Lestari', 'kode_mitra' => 'PT MUL', 'tipe_mitra' => 'perusahaan', 'is_active' => true, 'created_at' => now()],
+        // ]);
 
         // 3. Seed Pengangkut (Dibuat satu per satu agar dapat ID-nya)
         // $mrtId = DB::table('pengangkut')->insertGetId([
