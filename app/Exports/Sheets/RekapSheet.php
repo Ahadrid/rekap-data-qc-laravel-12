@@ -7,9 +7,11 @@ use App\Models\Pengangkut;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Events\AfterSheet;
 
-class RekapSheet implements FromCollection, WithTitle
+class RekapSheet implements FromCollection, WithTitle, WithEvents
 {
     protected array $filters;
     protected Collection $pengangkuts;
@@ -128,7 +130,7 @@ class RekapSheet implements FromCollection, WithTitle
             for ($bulan = 1; $bulan <= 12; $bulan++) {
                 $row = [
                     $no++,
-                    Carbon::create($tahun, $bulan)->translatedFormat('F'),
+                    Carbon::create($tahun, $bulan)->locale('id')->translatedFormat('F'),
                 ];
 
                 foreach ($this->pengangkuts as $p) {
@@ -188,5 +190,16 @@ class RekapSheet implements FromCollection, WithTitle
         }
 
         return $rows;
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                // Freeze kolom A & B (No + Bulan)
+                // Baris bebas → ALL & pengangkut tetap aman
+                $event->sheet->freezePane('C1');
+            },
+        ];
     }
 }

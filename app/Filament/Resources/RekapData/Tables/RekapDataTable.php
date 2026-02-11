@@ -2,13 +2,11 @@
 
 namespace App\Filament\Resources\RekapData\Tables;
 
+use App\Helpers\DateFormatHelpers;
 use App\Models\Mitra;
 use App\Models\Produk;
 use App\Models\RekapData;
 use Carbon\Carbon;
-use Dom\Text;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -21,7 +19,7 @@ class RekapDataTable
             ->columns([
                 TextColumn::make('bulan')
                     ->label('Bulan')
-                    ->state(fn (array $record) => \Carbon\Carbon::create()->month($record['bulan'])->translatedFormat('F')),
+                    ->state(fn (array $record) => DateFormatHelpers::bulanIndo($record['bulan'])),
 
                 TextColumn::make('netto_kebun')
                     ->label('Netto Kebun')
