@@ -24,4 +24,9 @@ class Mitra extends Model
             }
         });
     }
+
+    public function rekapData()
+    {
+        return $this->hasMany(RekapData::class);
+    }
 }

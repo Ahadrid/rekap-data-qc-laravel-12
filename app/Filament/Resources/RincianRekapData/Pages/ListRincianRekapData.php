@@ -3,13 +3,11 @@
 namespace App\Filament\Resources\RincianRekapData\Pages;
 
 use App\Exports\CompanyExport;
-use App\Exports\RekapDataExport;
 use App\Filament\Resources\RincianRekapData\RincianRekapDataResource;
 use App\Imports\RekapDataImport as Rincian;
 use App\Models\Produk;
 use App\Models\RekapData;
 use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -17,6 +15,7 @@ use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SupplierLuarExport;
 
 class ListRincianRekapData extends ListRecords
 {
@@ -132,6 +131,21 @@ class ListRincianRekapData extends ListRecords
                     }
 
                     $namaFile .= '.xlsx';
+
+                    if ($data['mode'] === 'suplier_luar') {
+
+                        return Excel::download(
+                            new SupplierLuarExport(
+                                $data['produk_id']
+                            ),
+                            $namaFile
+                        );
+
+                    }
+
+                    /* ===============================
+                    * EXPORT PERUSAHAAN (LAMA, AMAN)
+                    * =============================== */
 
                     return Excel::download(
                         new CompanyExport([
