@@ -132,26 +132,26 @@ class ListRincianRekapData extends ListRecords
 
                     $namaFile .= '.xlsx';
 
-                    if ($data['mode'] === 'suplier_luar') {
+                    // if ($data['mode'] === 'suplier_luar') {
 
-                        return Excel::download(
-                            new SupplierLuarExport(
-                                $data['produk_id']
-                            ),
-                            $namaFile
-                        );
+                    //     return Excel::download(
+                    //         new SupplierLuarExport(
+                    //             $data['produk_id']
+                    //         ),
+                    //         $namaFile
+                    //     );
 
-                    }
+                    // }
 
                     /* ===============================
                     * EXPORT PERUSAHAAN (LAMA, AMAN)
                     * =============================== */
 
                     return Excel::download(
-                        new CompanyExport([
-                            'produk_id' => $data['produk_id'],
-                            'mode'      => $data['mode'], // bim_rengat | bim_siak | mul
-                        ]),
+                        match ($data['mode']) {
+                            'suplier_luar' => new SupplierLuarExport($filters),
+                            default        => new CompanyExport($filters),
+                        },
                         $namaFile
                     );
                 }),

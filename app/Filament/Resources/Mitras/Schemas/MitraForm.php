@@ -39,11 +39,10 @@ class MitraForm
 
                 Select::make('tipe_mitra')
                     ->label('Tipe Mitra')
-                    ->options(
-                        Mitra::query()
-                            ->orderBy('tipe_mitra')
-                            ->pluck('tipe_mitra', 'id')
-                    )
+                    ->options([
+                        'perusahaan' => 'Perusahaan',
+                        'suplier_luar' => 'Supplier Luar'
+                    ])
                     ->searchable()
                     ->placeholder('Tipe Mitra')
                     ->required(),

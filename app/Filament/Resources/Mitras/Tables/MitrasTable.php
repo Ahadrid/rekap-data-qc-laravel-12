@@ -26,9 +26,15 @@ class MitrasTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('tipe_mitra')
-                    ->sortable()
+                    ->label('Tipe Mitra')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'perusahaan'    => 'Perusahaan',
+                        'suplier_luar'  => 'Supplier Luar',
+                        default         => ucfirst($state),
+                    }),
                 IconColumn::make('is_active')
                     ->label('Aktif')
                     ->boolean()

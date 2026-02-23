@@ -37,13 +37,13 @@ class RincianRekapDataTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('mitra.nama_mitra')
+                TextColumn::make('mitra.kode_mitra')
                     ->label('Nama Rekanan')
                     ->searchable()
                     // ->wrap() 
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('pengangkut.nama_pengangkut')
+                TextColumn::make('pengangkut.kode')
                     ->label('Nama Pengangkutan')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
@@ -62,6 +62,8 @@ class RincianRekapDataTable
                 /**
                  * 🔹 TIMBANGAN
                  */
+                
+                /**
                 TextColumn::make('bruto_kirim')
                     ->label('Bruto Kirim')
                     ->numeric(0, ',', '.')
@@ -101,6 +103,7 @@ class RincianRekapDataTable
                 /**
                  * 🔹 SUSUT %
                  */
+                /**
                 TextColumn::make('susut_persen')
                     ->label('Susut (%)')
                     ->suffix('%')
@@ -123,6 +126,7 @@ class RincianRekapDataTable
                     ->label('Catatan')
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: false),
+                */
             ])
             ->filters([
                 // nanti bisa tambah filter bulan / produk / mitra
@@ -131,7 +135,7 @@ class RincianRekapDataTable
                 ActionGroup::make([
                     ViewAction::make()
                         ->label('Detail'),
-                    EditAction::make(),
+                    // EditAction::make(),
                     DeleteAction::make()
                         ->label('Hapus'),
                 ]),

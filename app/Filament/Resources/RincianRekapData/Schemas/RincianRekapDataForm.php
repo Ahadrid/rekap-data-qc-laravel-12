@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\RincianRekapData\Schemas;
 
-use App\Models\Kendaraan;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -49,29 +48,29 @@ class RincianRekapDataForm
                     Select::make('produk_id')
                         ->label('Produk')
                         ->relationship('produk', 'nama_produk')
-                        ->searchable()
-                        ->preload()
+                        // ->searchable()
+                        // ->preload()
                         ->required(),
 
                     Select::make('mitra_id')
                         ->label('Mitra')
                         ->relationship('mitra', 'nama_mitra')
-                        ->searchable()
-                        ->preload()
+                        // ->searchable()
+                        // ->preload()
                         ->required(),
 
                     Select::make('pengangkut_id')
                         ->label('Pengangkut')
                         ->relationship('pengangkut', 'nama_pengangkut')
-                        ->searchable()
-                        ->preload()
+                        // ->searchable()
+                        // ->preload()
                         ->required(),
 
                     Select::make('kendaraan_id')
                         ->label('No Polisi')
                         ->relationship('kendaraan', 'no_pol')
-                        ->searchable()
-                        ->preload()
+                        // ->searchable()
+                        // ->preload()
                         ->required(),
                 ])
                 ->columns(2),
