@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Query;
+
 use App\Models\RekapData;
 
 class QueryExport
@@ -10,12 +11,28 @@ class QueryExport
         return RekapData::query()
             ->with(['mitra', 'produk', 'kendaraan', 'pengangkut'])
 
-            // filter produk
-            ->when($filters['produk_id'] ?? null,
+            /* ===============================
+             * FILTER PRODUK
+             * =============================== */
+            ->when(
+                $filters['produk_id'] ?? null,
                 fn ($q, $v) => $q->where('produk_id', $v)
             )
 
-            // filter MODE EXPORT
+            /* ===============================
+             * FILTER RENTANG TANGGAL (INI YANG HILANG)
+             * =============================== */
+            ->when(
+                !empty($filters['tanggal_mulai']) && !empty($filters['tanggal_akhir']),
+                fn ($q) => $q->whereBetween('tanggal', [
+                    $filters['tanggal_mulai'],
+                    $filters['tanggal_akhir'],
+                ])
+            )
+
+            /* ===============================
+             * FILTER MODE EXPORT
+             * =============================== */
             ->when($filters['mode'] ?? null, function ($q, $mode) {
                 match ($mode) {
                     'suplier_luar' =>
@@ -43,9 +60,6 @@ class QueryExport
                     default => null,
                 };
             })
-
             ->orderBy('tanggal');
-
     }
-
 }

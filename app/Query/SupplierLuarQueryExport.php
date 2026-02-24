@@ -21,6 +21,15 @@ class SupplierLuarQueryExport
                 !empty($filters['produk_id']),
                 fn ($q) => $q->where('produk_id', $filters['produk_id'])
             )
+
+            //Filter rentang tanggal awal dan akhir
+            ->when(
+                !empty($filters['tanggal_mulai']) && !empty($filters['tanggal_akhir']),
+                fn($q) => $q->whereBetween('tanggal', [
+                    $filters['tanggal_mulai'],
+                    $filters['tanggal_akhir'],
+                ])
+            )
             ->orderBy('tanggal');
     }
 }

@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SupplierLuarExport;
+use Carbon\Carbon;
+use Filament\Forms\Components\DatePicker;
 
 class ListRincianRekapData extends ListRecords
 {
@@ -110,12 +112,23 @@ class ListRincianRekapData extends ListRecords
                         ->searchable()
                         ->placeholder('Semua Produk')
                         ->nullable(),
+                    DatePicker::make('tanggal_mulai')
+                        ->label('Tanggal Mulai')
+                        ->required()
+                        ->default(now()->startOfMonth()),
+
+                    DatePicker::make('tanggal_akhir')
+                        ->label('Tanggal Akhir')
+                        ->required()
+                        ->default(now()->endOfMonth()),
                 ])
                 ->action(function (array $data) {
 
                     $filters = [
                         'mode'      => $data['mode'],
                         'produk_id' => $data['produk_id'] ?? null,
+                        'tanggal_mulai' => Carbon::parse($data['tanggal_mulai'])->startOfDay(),
+                        'tanggal_akhir' => Carbon::parse($data['tanggal_akhir'])->endOfDay(),
                     ];
 
                     $namaFile = 'rekap-' . match ($data['mode']) {
@@ -127,7 +140,11 @@ class ListRincianRekapData extends ListRecords
 
                     if (! empty($data['produk_id'])) {
                         $produk = Produk::find($data['produk_id']);
-                        $namaFile .= '-' . str($produk->nama_produk)->slug('-');
+                        $namaFile .= '-' . str($produk->kode_produk)->slug('-')
+                                        .'_'
+                                        . Carbon::parse($data['tanggal_mulai'])->format('d-m-Y')
+                                        . '_sd_'
+                                        . Carbon::parse($data['tanggal_akhir'])->format('d-y-M');
                     }
 
                     $namaFile .= '.xlsx';
