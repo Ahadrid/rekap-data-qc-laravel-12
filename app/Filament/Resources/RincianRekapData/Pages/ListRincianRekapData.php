@@ -18,6 +18,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SupplierLuarExport;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
+use Filament\Schemas\Schema;
 
 class ListRincianRekapData extends ListRecords
 {
@@ -37,7 +38,7 @@ class ListRincianRekapData extends ListRecords
                 ->authorize(fn () => 
                     Gate::allows('import-rekap-data')
                 )
-                ->form([
+                ->schema(fn (Schema $schema) => $schema -> components([
                     FileUpload::make('file')
                         ->label('File Excel')
                         ->required()
@@ -45,8 +46,8 @@ class ListRincianRekapData extends ListRecords
                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                             'application/vnd.ms-excel',
                         ])
-                        ->storeFiles(false), // 🔥 tidak masuk storage
-                ])
+                        ->storeFiles(false),
+                ]))
                 ->action(function (array $data) {
 
                     Gate::authorize('import-rekap-data');
@@ -91,14 +92,14 @@ class ListRincianRekapData extends ListRecords
                 ->label('Export Excel')
                 ->color('success')
                 ->icon('heroicon-o-arrow-down-tray')
-                ->form([
+                ->schema(fn (Schema $schema) => $schema->components([
                     Select::make('mode')
                         ->label('Jenis Export')
                         ->options([
                             'suplier_luar' => 'Supplier Luar',
-                            'bim_rengat'    => 'Berlian Inti Mekar - Rengat',
-                            'bim_siak'      => 'Berlian Inti Mekar - Siak',
-                            'mul'           => 'Mutiara Unggul Lestari',
+                            'bim_rengat'   => 'Berlian Inti Mekar - Rengat',
+                            'bim_siak'     => 'Berlian Inti Mekar - Siak',
+                            'mul'          => 'Mutiara Unggul Lestari',
                         ])
                         ->required(),
 
@@ -112,6 +113,7 @@ class ListRincianRekapData extends ListRecords
                         ->searchable()
                         ->placeholder('Semua Produk')
                         ->nullable(),
+
                     DatePicker::make('tanggal_mulai')
                         ->label('Tanggal Mulai')
                         ->required()
@@ -121,7 +123,7 @@ class ListRincianRekapData extends ListRecords
                         ->label('Tanggal Akhir')
                         ->required()
                         ->default(now()->endOfMonth()),
-                ])
+                ]))
                 ->action(function (array $data) {
 
                     $filters = [
@@ -142,23 +144,12 @@ class ListRincianRekapData extends ListRecords
                         $produk = Produk::find($data['produk_id']);
                         $namaFile .= '-' . str($produk->kode_produk)->slug('-')
                                         .'_'
-                                        . Carbon::parse($data['tanggal_mulai'])->format('d-m-Y')
+                                        . Carbon::parse($data['tanggal_mulai'])->format('d-M-Y')
                                         . '_sd_'
-                                        . Carbon::parse($data['tanggal_akhir'])->format('d-y-M');
+                                        . Carbon::parse($data['tanggal_akhir'])->format('d-M-Y');
                     }
 
                     $namaFile .= '.xlsx';
-
-                    // if ($data['mode'] === 'suplier_luar') {
-
-                    //     return Excel::download(
-                    //         new SupplierLuarExport(
-                    //             $data['produk_id']
-                    //         ),
-                    //         $namaFile
-                    //     );
-
-                    // }
 
                     /* ===============================
                     * EXPORT PERUSAHAAN (LAMA, AMAN)
