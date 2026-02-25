@@ -39,14 +39,8 @@ class ResolveRekapMasterData
 
         /* ===============================
          * PENGANGKUT
-         * LOGIKA UTAMA ADA DI SINI 🔥
          * =============================== */
-        $namaPengangkut = trim($row['transporter_name'] ?? '');
-
-        if ($namaPengangkut === '') {
-            // 🔥 fallback → MITRA sebagai pengangkut
-            $namaPengangkut = $mitra->nama_mitra;
-        }
+        $namaPengangkut = trim($row['transporter_name']);
 
         $pengangkut = Pengangkut::firstOrCreate(
             ['nama_pengangkut' => $namaPengangkut],
@@ -64,10 +58,10 @@ class ResolveRekapMasterData
             ]
         );
 
-        // jaga konsistensi
+        // Jaga konsistensi jika kendaraan sudah ada tapi belum punya pengangkut
         if (! $kendaraan->pengangkut_id) {
             $kendaraan->update([
-                'pengangkut_id' => $pengangkut->id
+                'pengangkut_id' => $pengangkut->id,
             ]);
         }
 
