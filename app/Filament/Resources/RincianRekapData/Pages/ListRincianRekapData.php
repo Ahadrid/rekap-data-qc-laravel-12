@@ -82,7 +82,7 @@ class ListRincianRekapData extends ListRecords
                             "Nomor terakhir:\n" .
                             implode("\n", $messages) .
                             "\n\nBerhasil: {$import->inserted}\n" .
-                            "Duplikat dilewati: {$import->skipped}"
+                            "Duplikat/dilewati: {$import->skipped}"
                         )
                         ->success()
                         ->send();

@@ -42,11 +42,13 @@ class DashboardPanelProvider extends PanelProvider
             ->emailVerification()
             ->profile(false)
             ->login()
+            ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('16rem')
             ->brandLogo(asset('images/logo-baru.svg'))
             ->brandName(null)
             ->brandLogoHeight('50px')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Green,
             ])
             ->favicon(asset('favicon.ico'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
