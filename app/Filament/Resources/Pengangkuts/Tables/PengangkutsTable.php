@@ -27,7 +27,7 @@ class PengangkutsTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('kode')
-                    ->label('Kode Pengangkutan')
+                    ->label('Kode')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 IconColumn::make('is_active')

@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\RincianRekapData\Tables;
 
+use App\Models\Mitra;
+use App\Models\Pengangkut;
+use App\Models\Produk;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -53,29 +56,38 @@ class RincianRekapDataTable
                     ->placeholder('-'),
             ])
             ->filters([
-                /**
-                 * 🔍 FILTER PRODUK (ringan & scalable)
-                 */
                 SelectFilter::make('produk_id')
                     ->label('Produk')
-                    ->relationship('produk', 'kode_produk')
-                    ->searchable(),
+                    ->options(
+                        Produk::orderBy('kode_produk')
+                            ->pluck('kode_produk', 'id')
+                            ->toArray()
+                    )
+                    ->placeholder('Semua Produk')
+                    ->multiple(true),
 
-                /**
-                 * 🔍 FILTER MITRA
-                 */
                 SelectFilter::make('mitra_id')
                     ->label('Mitra')
-                    ->relationship('mitra', 'kode_mitra')
-                    ->searchable(),
+                    ->options(
+                        Mitra::orderBy('nama_mitra')
+                            ->pluck('nama_mitra', 'id')
+                            ->toArray()
+                    )
+                    ->placeholder('Semua Mitra')
+                    ->searchable()
+                    ->multiple(false),
 
-                /**
-                 * 🔍 FILTER PENGANGKUT
-                 */
                 SelectFilter::make('pengangkut_id')
-                    ->label('Pengangkut')
-                    ->relationship('pengangkut', 'kode')
-                    ->searchable(),
+                    ->label('Pengangkutan')
+                    ->options(
+                        Pengangkut::orderBy('kode')
+                            ->pluck('kode', 'id')
+                            ->toArray()
+                    )
+                    ->placeholder('Semua Pengangkutan')
+                    ->searchable()
+                    ->multiple(false),
+
             ])
             ->recordActions([
                 ActionGroup::make([
