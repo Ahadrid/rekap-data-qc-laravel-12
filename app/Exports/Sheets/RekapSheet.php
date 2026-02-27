@@ -54,9 +54,21 @@ class RekapSheet implements FromCollection, WithTitle, WithEvents
     protected function loadPengangkuts(): Collection
     {
         return Pengangkut::whereHas('rekapData', function ($q) {
+
+            // 🔒 FILTER PRODUK
             if (!empty($this->filters['produk_id'])) {
                 $q->where('produk_id', $this->filters['produk_id']);
             }
+
+            // ✅ FILTER RENTANG TANGGAL
+            if (!empty($this->filters['tanggal_mulai']) && !empty($this->filters['tanggal_akhir'])) {
+                $q->whereBetween('tanggal', [
+                    $this->filters['tanggal_mulai'],
+                    $this->filters['tanggal_akhir'],
+                ]);
+            }
+
+            // 🔒 FILTER MITRA
             $q->whereHas('mitra', fn($m) => $this->applyMitraFilter($m));
         })
         ->orderBy('kode')
@@ -65,13 +77,15 @@ class RekapSheet implements FromCollection, WithTitle, WithEvents
 
     protected function applyMitraFilter($query): void
     {
-        match ($this->filters['mode'] ?? null) {
-            'bim_rengat' => $query->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
-                ->where('nama_mitra', 'ILIKE', '%RENGAT%'),
-            'bim_siak' => $query->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
-                ->where('nama_mitra', 'ILIKE', '%SIAK%'),
-            'mul' => $query->where('nama_mitra', 'ILIKE', '%MUTIARA UNGGUL LESTARI%'),
-            default => null,
-        };
+        $mode = $this->filters['mode'] ?? null;
+        if ($mode === 'bim_rengat') {
+            $query->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
+                ->where('nama_mitra', 'ILIKE', '%RENGAT%');
+        } elseif ($mode === 'bim_siak') {
+            $query->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
+                ->where('nama_mitra', 'ILIKE', '%SIAK%');
+        } elseif ($mode === 'mul') {
+            $query->where('nama_mitra', 'ILIKE', '%MUTIARA UNGGUL LESTARI%');
+        }
     }
 }

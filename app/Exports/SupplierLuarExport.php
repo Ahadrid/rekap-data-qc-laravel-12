@@ -25,6 +25,13 @@ class SupplierLuarExport implements WithMultipleSheets
                 if (!empty($this->filters['produk_id'])) {
                     $q->where('produk_id', $this->filters['produk_id']);
                 }
+
+                if (!empty($this->filters['tanggal_mulai']) && !empty($this->filters['tanggal_akhir'])) {
+                    $q->whereBetween('tanggal',[
+                        $this->filters['tanggal_mulai'],
+                        $this->filters['tanggal_akhir'],
+                    ]);
+                }
             })
             ->orderBy('nama_mitra')
             ->get();

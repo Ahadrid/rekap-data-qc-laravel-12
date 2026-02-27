@@ -30,27 +30,31 @@ class CompanyExport implements WithMultipleSheets
         // 3️⃣ Sheet per PENGANGKUT (HANYA yg relevan)
         $pengangkuts = Pengangkut::whereHas('rekapData', function ($q) {
 
-            // 🔒 FILTER PRODUK (PK / CPO)
+            // 🔒 FILTER PRODUK
             if (!empty($this->filters['produk_id'])) {
                 $q->where('produk_id', $this->filters['produk_id']);
             }
 
+            // ✅ FILTER RENTANG TANGGAL
+            if (!empty($this->filters['tanggal_mulai']) && !empty($this->filters['tanggal_akhir'])) {
+                $q->whereBetween('tanggal', [
+                    $this->filters['tanggal_mulai'],
+                    $this->filters['tanggal_akhir'],
+                ]);
+            }
+
             // 🔒 FILTER MITRA / COMPANY
             $q->whereHas('mitra', function ($m) {
-                match ($this->filters['mode']) {
-                    'bim_rengat' =>
-                        $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
-                          ->where('nama_mitra', 'ILIKE', '%RENGAT%'),
-
-                    'bim_siak' =>
-                        $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
-                          ->where('nama_mitra', 'ILIKE', '%SIAK%'),
-
-                    'mul' =>
-                        $m->where('nama_mitra', 'ILIKE', '%MUTIARA UNGGUL LESTARI%'),
-
-                    default => null,
-                };
+                $mode = $this->filters['mode'] ?? null;
+                if ($mode === 'bim_rengat') {
+                    $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
+                    ->where('nama_mitra', 'ILIKE', '%RENGAT%');
+                } elseif ($mode === 'bim_siak') {
+                    $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
+                    ->where('nama_mitra', 'ILIKE', '%SIAK%');
+                } elseif ($mode === 'mul') {
+                    $m->where('nama_mitra', 'ILIKE', '%MUTIARA UNGGUL LESTARI%');
+                }
             });
         })
         ->orderBy('kode')
