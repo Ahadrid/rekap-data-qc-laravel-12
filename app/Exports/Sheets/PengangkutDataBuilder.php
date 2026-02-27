@@ -66,16 +66,19 @@ class PengangkutDataBuilder
     protected function getPengangkutData(int $pengangkutId, int $bulan): array
     {
         $item = $this->data->first(fn ($i) =>
-            $i->pengangkut_id === $pengangkutId &&
+            (int) $i->pengangkut_id === $pengangkutId &&
             Carbon::parse($i->bulan)->year === $this->tahun &&
             Carbon::parse($i->bulan)->month === $bulan
         );
 
-        $nk = $item->netto_kebun ?? 0;
-        $n  = $item->netto ?? 0;
-        $s  = $item->susut ?? 0;
-        $persen = $nk > 0 ? ($s / $nk) * 100 : 0;
-        
-        return [$nk, $n, $s, $persen];
+        $nk = (float) ($item->netto_kebun ?? 0);
+        $n  = (float) ($item->netto ?? 0);
+        $s  = (float) ($item->susut ?? 0);
+
+        // ✅ Nilai desimal murni, bukan dikali 100
+        // Format % di Excel sudah otomatis kalikan 100 saat display
+        $persen = $nk != 0 ? $s / $nk : 0;
+
+        return [$nk ?: null, $n ?: null, $s ?: null, $persen ?: null];
     }
 }

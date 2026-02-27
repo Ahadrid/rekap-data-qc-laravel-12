@@ -94,9 +94,21 @@ class RekapSheetBuilder
 
     protected function addAllTable(Collection &$rows, int $tahun): void
     {
-        $allBuilder = new AllTableBuilder($this->styleTracker, $this->data, $tahun, $this->currentRow);
+        // Spacer sebelum tabel ALL
+        $rows->push($this->emptyRow(6));
+        $this->currentRow++;
+
+        // Pass by value — AllTableBuilder tidak ubah currentRow
+        $allBuilder = new AllTableBuilder(
+            $this->styleTracker,
+            $this->data,
+            $tahun,
+            $this->currentRow
+        );
+
         $allRows = $allBuilder->build();
-        
+
+        // Semua increment dikelola di sini
         foreach ($allRows as $row) {
             $rows->push($row);
             $this->currentRow++;
@@ -117,17 +129,27 @@ class RekapSheetBuilder
             ->when(!empty($this->filters['produk_id']), fn($q) => 
                 $q->where('produk_id', $this->filters['produk_id'])
             )
+            // ✅ Tambahkan filter rentang tanggal
+            ->when(
+                !empty($this->filters['tanggal_mulai']) && !empty($this->filters['tanggal_akhir']),
+                fn($q) => $q->whereBetween('tanggal', [
+                    $this->filters['tanggal_mulai'],
+                    $this->filters['tanggal_akhir'],
+                ])
+            )
             ->when($this->filters['mode'] ?? null, function ($q) {
                 $q->whereHas('mitra', function ($m) {
-                    match ($this->filters['mode']) {
-                        'bim_rengat' => $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
-                            ->where('nama_mitra', 'ILIKE', '%RENGAT%'),
-                        'bim_siak' => $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
-                            ->where('nama_mitra', 'ILIKE', '%SIAK%'),
-                        'mul' => $m->where('nama_mitra', 'ILIKE', '%MUTIARA UNGGUL LESTARI%'),
-
-                        default => null,
-                    };
+                    // ✅ Gunakan if/match yang benar-benar memanggil where pada $m
+                    $mode = $this->filters['mode'];
+                    if ($mode === 'bim_rengat') {
+                        $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
+                        ->where('nama_mitra', 'ILIKE', '%RENGAT%');
+                    } elseif ($mode === 'bim_siak') {
+                        $m->where('nama_mitra', 'ILIKE', '%BERLIAN INTI MEKAR%')
+                        ->where('nama_mitra', 'ILIKE', '%SIAK%');
+                    } elseif ($mode === 'mul') {
+                        $m->where('nama_mitra', 'ILIKE', '%MUTIARA UNGGUL LESTARI%');
+                    }
                 });
             })
             ->selectRaw("
@@ -144,8 +166,15 @@ class RekapSheetBuilder
 
     protected function getYearRange(): array
     {
-        $start = $this->filters['tahun_mulai'] ?? now()->year;
-        $end = $this->filters['tahun_akhir'] ?? now()->year;
+        // ✅ Ambil tahun dari tanggal_mulai & tanggal_akhir
+        $start = !empty($this->filters['tanggal_mulai'])
+            ? Carbon::parse($this->filters['tanggal_mulai'])->year
+            : ($this->filters['tahun_mulai'] ?? now()->year);
+
+        $end = !empty($this->filters['tanggal_akhir'])
+            ? Carbon::parse($this->filters['tanggal_akhir'])->year
+            : ($this->filters['tahun_akhir'] ?? now()->year);
+
         return range($start, $end);
     }
 

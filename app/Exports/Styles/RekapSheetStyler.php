@@ -39,24 +39,29 @@ class RekapSheetStyler
 
     protected function applyNumberFormats(): void
     {
-        $highestRow = $this->sheet->getHighestRow();
-        $highestColumn = $this->sheet->getHighestColumn();
-        
+        $highestRow    = $this->sheet->getHighestRow();
+        $highestColIdx = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString(
+            $this->sheet->getHighestColumn()
+        );
+
         for ($row = 1; $row <= $highestRow; $row++) {
-            for ($col = 'C'; $col <= $highestColumn; $col++) {
-                $value = $this->sheet->getCell("{$col}{$row}")->getValue();
+            // Mulai dari kolom C (index 3)
+            for ($colIdx = 3; $colIdx <= $highestColIdx; $colIdx++) {
+                $col   = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
+                $cell  = $this->sheet->getCell("{$col}{$row}");
+                $value = $cell->getValue();
+
                 if (is_numeric($value) && $value !== null && $value !== '') {
-                    $this->sheet->getStyle("{$col}{$row}")
-                        ->getNumberFormat()
-                        ->setFormatCode('#,##0');
+                    $cell->getStyle()->getNumberFormat()->setFormatCode('#,##0');
                 }
             }
         }
-        
+
+        // ✅ Format persen yang benar: nilai desimal * 100 ditampilkan sebagai %
         foreach ($this->tracker->percentCells as $cell) {
             $this->sheet->getStyle($cell)
                 ->getNumberFormat()
-                ->setFormatCode('#,##0.00');
+                ->setFormatCode('0.00%');
         }
     }
 
@@ -115,18 +120,22 @@ class RekapSheetStyler
 
     protected function applyAlignments(): void
     {
-        $highestRow = $this->sheet->getHighestRow();
-        $highestColumn = $this->sheet->getHighestColumn();
-        
+        $highestRow    = $this->sheet->getHighestRow();
+        $highestColIdx = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString(
+            $this->sheet->getHighestColumn()
+        );
+
         foreach ($this->tracker->mergeCells as $range) {
             $this->sheet->getStyle($range)
                 ->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                 ->setVertical(Alignment::VERTICAL_CENTER);
         }
-        
+
         for ($row = 1; $row <= $highestRow; $row++) {
-            for ($col = 'A'; $col <= $highestColumn; $col++) {
+            // ✅ Gunakan index numerik, aman di PHP 8+
+            for ($colIdx = 1; $colIdx <= $highestColIdx; $colIdx++) {
+                $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
                 if ($col !== 'B') {
                     $this->sheet->getStyle("{$col}{$row}")
                         ->getAlignment()

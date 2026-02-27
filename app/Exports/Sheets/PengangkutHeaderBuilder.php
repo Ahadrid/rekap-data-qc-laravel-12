@@ -67,10 +67,10 @@ class PengangkutHeaderBuilder
 
     protected function addRedBorders(string $startCol, string $endCol): void
     {
-        $borderRange = "{$startCol}{$this->startRow}:{$startCol}" . ($this->startRow + 13);
-        $this->styleTracker->addRedBorder($borderRange, 'left');
+        // Dinamis: header 2 baris + 12 bulan data = 13 baris total dari startRow
+        $bottomRow = $this->startRow + 13; // 2 header rows + 12 data rows - 1
         
-        $borderRange = "{$endCol}{$this->startRow}:{$endCol}" . ($this->startRow + 13);
-        $this->styleTracker->addRedBorder($borderRange, 'right');
+        $this->styleTracker->addRedBorder("{$startCol}{$this->startRow}:{$startCol}{$bottomRow}", 'left');
+        $this->styleTracker->addRedBorder("{$endCol}{$this->startRow}:{$endCol}{$bottomRow}", 'right');
     }
 }
