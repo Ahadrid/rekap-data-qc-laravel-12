@@ -9,7 +9,11 @@ class Pengangkut extends Model
 {
     protected $table = 'pengangkut';
 
-    protected $fillable = ['nama_pengangkut', 'kode', 'is_active'];
+    protected $fillable = [
+        'nama_pengangkut', 
+        'kode', 
+        'is_active'
+    ];
 
     protected static function booted()
     {

@@ -21,8 +21,7 @@ class UsersTable
                 TextColumn::make('name')
                     ->label('Nama Lengkap')
                     ->searchable(),
-                TextColumn::make('email')
-                    ->searchable(),
+                TextColumn::make('email'),
                 
                 TextColumn::make('role')
                     ->badge()
@@ -30,12 +29,14 @@ class UsersTable
                         'superadmin' => 'primary',
                         'admin' => 'danger',
                         'qc' => 'warning',
-                        'staff' => 'success',
+                        'staff' => 'info',
                         default => 'gray'
                     }),
                     IconColumn::make('is_active')
                         ->boolean()
-                        ->label('Aktif'),
+                        ->label('Aktif')
+                        ->toggleable(isToggledHiddenByDefault: true),
+
 
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -49,6 +50,9 @@ class UsersTable
             ->filters([
                 //
             ])
+            ->deferLoading()
+            ->paginated([10,25,50])
+            ->defaultPaginationPageOption(10)
             ->recordAction(null)
             ->recordUrl(null)
             ->recordActions([

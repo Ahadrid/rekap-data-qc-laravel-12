@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class MitraResource extends Resource
@@ -60,6 +61,18 @@ class MitraResource extends Resource
     public static function getNavigationBadgeTooltip(): ?string
     {
         return 'Total Mitra';
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->select([
+                'id',
+                'nama_mitra', 
+                'kode_mitra', 
+                'tipe_mitra', 
+                'is_active'
+            ]);
     }
 
     public static function getPages(): array

@@ -16,6 +16,11 @@ class PengangkutsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->recordAction(null)
+            ->recordUrl(null)
+            ->deferLoading()
+            ->paginated([10,25,50])
+            ->defaultPaginationPageOption(10)
             ->columns([
                TextColumn::make('nama_pengangkut')
                     ->label('Nama Pengangkutan')
@@ -41,8 +46,6 @@ class PengangkutsTable
             ->filters([
                 //
             ])
-            ->recordAction(null)
-            ->recordUrl(null)
             ->recordActions([
                 ViewAction::make()
                     ->label('Detail'),

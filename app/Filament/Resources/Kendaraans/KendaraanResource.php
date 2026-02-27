@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class KendaraanResource extends Resource
 {
@@ -59,6 +60,20 @@ class KendaraanResource extends Resource
     public static function getNavigationBadgeTooltip(): ?string
     {
         return 'Total Kendaraan';
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->select([
+                'id',
+                'no_pol',
+                'nama_supir',
+                'pengangkut_id',
+            ])
+            ->with([
+                'pengangkut:id,nama_pengangkut'
+            ]);
     }
 
     public static function getPages(): array

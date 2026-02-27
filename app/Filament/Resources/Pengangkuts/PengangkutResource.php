@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PengangkutResource extends Resource
 {
@@ -59,6 +60,17 @@ class PengangkutResource extends Resource
     public static function getNavigationBadgeTooltip(): ?string
     {
         return 'Total Pengangkut';
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->select([
+                'id',
+                'nama_pengangkut', 
+                'kode', 
+                'is_active'
+            ]);
     }
 
     public static function getPages(): array

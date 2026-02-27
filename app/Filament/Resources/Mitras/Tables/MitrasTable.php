@@ -18,6 +18,9 @@ class MitrasTable
         return $table
             ->recordAction(null)
             ->recordUrl(null)
+            ->deferLoading()
+            ->paginated([10,25,50])
+            ->defaultPaginationPageOption(10)
             ->columns([
                 TextColumn::make('nama_mitra')
                     ->searchable()
@@ -31,8 +34,8 @@ class MitrasTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false)
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'perusahaan'    => 'Perusahaan',
                         'suplier_luar'  => 'Supplier Luar',
+                        'perusahaan'    => 'Perusahaan',
                         default         => ucfirst($state),
                     }),
                 IconColumn::make('is_active')
@@ -63,6 +66,7 @@ class MitrasTable
                     DeleteBulkAction::make()
                         ->label('Hapus yang dipilih'),
                 ]),
-            ]);
+            ])
+            ->defaultSort('tipe_mitra', 'asc');
     }
 }

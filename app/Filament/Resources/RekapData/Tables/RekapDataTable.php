@@ -79,6 +79,7 @@ class RekapDataTable
             ])
             ->recordUrl(null)
             ->recordAction(null)
+            ->deferLoading()
             ->recordActions([])
             ->toolbarActions([])
             ->defaultSort('tanggal', 'desc');

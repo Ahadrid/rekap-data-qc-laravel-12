@@ -19,6 +19,9 @@ use App\Exports\SupplierLuarExport;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Contracts\Pagination\CursorPaginator;
 
 class ListRincianRekapData extends ListRecords
 {
@@ -112,7 +115,7 @@ class ListRincianRekapData extends ListRecords
                         )
                         ->searchable()
                         ->placeholder('Semua Produk')
-                        ->nullable(),
+                        ->required(),
 
                     DatePicker::make('tanggal_mulai')
                         ->label('Tanggal Mulai')

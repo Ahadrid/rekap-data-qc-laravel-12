@@ -16,6 +16,9 @@ class ProduksTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->deferLoading()
+            ->paginated([10,25,50])
+            ->defaultPaginationPageOption(10)
             ->columns([
                 TextColumn::make('nama_produk')
                     ->label('Nama Produk')
