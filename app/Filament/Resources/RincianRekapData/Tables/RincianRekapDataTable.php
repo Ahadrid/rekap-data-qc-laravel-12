@@ -86,7 +86,7 @@ class RincianRekapDataTable
                     )
                     ->placeholder('Semua Pengangkutan')
                     ->searchable()
-                    ->multiple(false),
+                    ->multiple(true),
 
             ])
             ->recordActions([
