@@ -7,6 +7,8 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -19,9 +21,11 @@ class KendaraansTable
         return $table
             ->columns([
                 TextColumn::make('no_pol')
+                    ->label('Nomor Kendaraan')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('nama_supir')
+                    ->label('Nama Supir')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('pengangkut.nama_pengangkut')
@@ -50,8 +54,24 @@ class KendaraansTable
             ->recordUrl(null)
             ->recordActions([
                 ViewAction::make()
-                    ->label('Detail'),
-                EditAction::make(),
+                        ->label('Detail')
+                        ->modalHeading('Informasi Kendaraan')
+                        ->modalWidth('sm')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Tutup')
+                        ->schema(fn (Schema $schema) => $schema->components([
+                            TextEntry::make('no_pol')
+                                        ->label('Nomor Kendaraan')
+                                        ->placeholder('-'),
+
+                            TextEntry::make('nama_supir')
+                                        ->label('Nama Supir'),
+                            
+                            TextEntry::make('pengangkut.nama_pengangkut')
+                                        ->label('Nama Pengangkutan'),
+                ])),
+                EditAction::make()
+                    ->modalWidth('xl'),
                 DeleteAction::make()
                  ->label('Hapus'),
             ])

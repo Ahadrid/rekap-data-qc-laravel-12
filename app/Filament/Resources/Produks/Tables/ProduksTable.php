@@ -2,11 +2,16 @@
 
 namespace App\Filament\Resources\Produks\Tables;
 
+use Carbon\Carbon;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -25,7 +30,7 @@ class ProduksTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('kode_produk')
-                    ->label('Kode Produk')
+                    ->label('Singkatan')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 IconColumn::make('is_active')
@@ -48,7 +53,19 @@ class ProduksTable
             ->recordUrl(null)
             ->recordActions([
                 ViewAction::make()
-                    ->label('Detail'),
+                        ->label('Detail')
+                        ->modalHeading('Informasi Produk')
+                        ->modalWidth('sm')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Tutup')
+                        ->schema(fn (Schema $schema) => $schema->components([
+                            TextEntry::make('nama_produk')
+                                        ->label('Nama Produk')
+                                        ->placeholder('-'),
+
+                            TextEntry::make('kode_produk')
+                                        ->label('Singkatan'),
+                ])),
                 EditAction::make(),
                 DeleteAction::make()
                     ->label('Hapus'),

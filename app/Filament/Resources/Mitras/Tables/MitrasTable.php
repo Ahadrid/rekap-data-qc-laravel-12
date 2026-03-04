@@ -7,6 +7,8 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -26,6 +28,7 @@ class MitrasTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('kode_mitra')
+                    ->label('Singkatan')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('tipe_mitra')
@@ -56,8 +59,29 @@ class MitrasTable
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->label('Detail'),
-                EditAction::make(),
+                        ->label('Detail')
+                        ->modalHeading('Informasi Mitra')
+                        ->modalWidth('sm')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Tutup')
+                        ->schema(fn (Schema $schema) => $schema->components([
+                            TextEntry::make('nama_mitra')
+                                        ->label('Nama Rekanan')
+                                        ->placeholder('-'),
+
+                            TextEntry::make('kode_mitra')
+                                        ->label('Singkatan'),
+
+                            TextEntry::make('tipe_mitra')
+                                        ->label('Tipe Rekanan')
+                                        ->formatStateUsing(fn (string $state): string => match ($state) {
+                                            'suplier_luar'  => 'Supplier Luar',
+                                            'perusahaan'    => 'Perusahaan',
+                                            default         => ucfirst($state),
+                                        }),
+                ])),
+                EditAction::make()
+                    ->modalWidth('xl'),
                 DeleteAction::make()
                     ->label('Hapus'),
             ])

@@ -7,9 +7,13 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use ZipStream\CentralDirectoryFileHeader;
 
 class PengangkutsTable
 {
@@ -25,10 +29,13 @@ class PengangkutsTable
                TextColumn::make('nama_pengangkut')
                     ->label('Nama Pengangkutan')
                     ->searchable()
+                    ->width('60%')
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('kode')
-                    ->label('Kode')
+                    ->label('Singkatan')
                     ->searchable()
+                    // ->alignCenter()
+                    ->width('40%')
                     ->toggleable(isToggledHiddenByDefault: false),
                 IconColumn::make('is_active')
                     ->label('Aktif')
@@ -46,10 +53,24 @@ class PengangkutsTable
             ->filters([
                 //
             ])
+            ->recordActionsColumnLabel('Aksi')
             ->recordActions([
                 ViewAction::make()
-                    ->label('Detail'),
-                EditAction::make(),
+                        ->label('Detail')
+                        ->modalHeading('Informasi Pengangkutan')
+                        ->modalWidth('md')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Tutup')
+                        ->schema(fn (Schema $schema) => $schema->components([
+                            TextEntry::make('nama_pengangkut')
+                                        ->label('Nama Pengangkut')
+                                        ->placeholder('-'),
+
+                            TextEntry::make('kode')
+                                        ->label('Singkatan'),
+                ])),
+                EditAction::make()
+                    ->modalWidth('xl'),
                 DeleteAction::make()
                     ->label('Hapus'),
             ])

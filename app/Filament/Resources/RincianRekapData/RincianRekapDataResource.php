@@ -74,9 +74,9 @@ class RincianRekapDataResource extends Resource
                 'kendaraan_id',
             ])
             ->with([
-                'produk:id,kode_produk',
-                'mitra:id,kode_mitra',
-                'pengangkut:id,kode',
+                'produk:id,kode_produk,nama_produk',
+                'mitra:id,kode_mitra,nama_mitra',
+                'pengangkut:id,kode,nama_pengangkut',
                 'kendaraan:id,no_pol,nama_supir',
             ]);
     }

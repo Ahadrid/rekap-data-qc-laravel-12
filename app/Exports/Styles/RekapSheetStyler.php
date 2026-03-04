@@ -57,11 +57,19 @@ class RekapSheetStyler
             }
         }
 
-        // ✅ Format persen yang benar: nilai desimal * 100 ditampilkan sebagai %
-        foreach ($this->tracker->percentCells as $cell) {
-            $this->sheet->getStyle($cell)
-                ->getNumberFormat()
-                ->setFormatCode('0.00%');
+        foreach ($this->tracker->percentCells as $cellAddress) {
+            $cell  = $this->sheet->getCell($cellAddress);
+            $value = $cell->getValue();
+
+            if (is_numeric($value)) {
+                // ⬅️ konversi persen ke angka biasa
+                $cell->setValue($value * 100);
+
+                // format angka TANPA %
+                $cell->getStyle()
+                    ->getNumberFormat()
+                    ->setFormatCode('0.00');
+            }
         }
     }
 
