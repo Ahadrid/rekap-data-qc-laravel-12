@@ -33,9 +33,19 @@ class RekapDataImport implements ToModel, WithHeadingRow, WithStartRow
         }
 
         // ✅ Skip jika tidak ada nama pengangkutan (transporter_name kosong)
-        if (empty(trim($row['transporter_name'] ?? ''))) {
-            $this->skipped++;
-            return null;
+        $transporter = trim($row['transporter_name'] ?? '');
+        $mitraName   = trim($row['mitra'] ?? '');
+
+        // Jika transporter kosong
+        if ($transporter === '') {
+
+            // Khusus PT. Intan Sejati Andalan → pakai nama mitra
+            if (str_contains(strtolower($mitraName), 'intan sejati andalan')) {
+                $row['transporter_name'] = $mitraName;
+            } else {
+                $this->skipped++;
+                return null;
+            }
         }
 
         try {
