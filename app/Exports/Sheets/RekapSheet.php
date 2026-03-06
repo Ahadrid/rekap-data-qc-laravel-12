@@ -3,7 +3,6 @@ namespace App\Exports\Sheets;
 
 use App\Exports\Styles\RekapSheetStyler;
 use App\Exports\Styles\StyleTracker;
-use App\Models\RekapData;
 use App\Models\Pengangkut;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;

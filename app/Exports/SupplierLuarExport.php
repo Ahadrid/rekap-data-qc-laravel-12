@@ -2,6 +2,9 @@
 
 namespace App\Exports;
 
+use App\Exports\Sheets\RekapSheet;
+use App\Exports\Sheets\RekapSupplierLuarSheet;
+use App\Exports\Sheets\RekapSupplierLuarSheetBuilder;
 use App\Exports\Sheets\SupplierLuarSheet;
 use App\Models\Mitra;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
@@ -18,6 +21,11 @@ class SupplierLuarExport implements WithMultipleSheets
     public function sheets(): array
     {
         $sheets = [];
+
+
+        // $sheets[] = new RekapSheet($this->filters);
+
+        $sheets[] = new RekapSupplierLuarSheet($this->filters);
 
         $mitras = Mitra::query()
             ->where('tipe_mitra', 'suplier_luar')
