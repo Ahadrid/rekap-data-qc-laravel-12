@@ -51,9 +51,17 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'password' => 'hashed',
         ];
     }
-    
-    function canAccessPanel(Panel $panel): bool
+
+    public function canAccessPanel(Panel $panel): bool
     {
-        return $this->is_active;
+        // Cek status aktif
+        if (!$this->is_active) {
+            return false;
+        }
+        
+        // Cek role yang diizinkan
+        $allRole = ['superadmin', 'admin', 'legal', 'sdm', 'humas'];
+
+        return in_array($this->role, $allRole);
     }
 }

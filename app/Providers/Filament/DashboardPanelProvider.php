@@ -75,6 +75,7 @@ class DashboardPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
+                // \App\Http\Middleware\FilamentCekStatus::class,
                 Authenticate::class,
             ]);
     }
