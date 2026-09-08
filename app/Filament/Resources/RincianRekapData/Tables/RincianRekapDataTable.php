@@ -42,7 +42,7 @@ class RincianRekapDataTable
                 TextColumn::make('mitra.kode_mitra')
                     ->label('Nama Rekanan'),
 
-                TextColumn::make('pengangkut.kode')
+                TextColumn::make('pengangkut.nama_pengangkut')
                     ->label('Nama Pengangkutan'),
 
                 TextColumn::make('kendaraan.no_pol')

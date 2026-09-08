@@ -1,59 +1,195 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Rekap Data QC
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Ringkasan
+---------
+Repositori ini berisi aplikasi Laravel untuk mengumpulkan, memproses, dan melaporkan data berat/kualitas (bruto/tara/netto) dari sumber Excel. Fitur utama meliputi: manajemen master data (produk, mitra, pengangkut, kendaraan), importer Excel tahan banting dengan resolusi master fuzzy dan deduplikasi, UI admin berbasis Filament, serta ekspor Excel multi-sheet dengan format dan gaya siap-pakai.
 
-## About Laravel
+Fakta singkat
+------------
+- Framework: Laravel ^12 ([composer.json](composer.json))
+- Kebutuhan PHP: ^8.2 ([composer.json](composer.json))
+- UI Admin: Filament (~4.0) (lihat `app/Filament/Resources`)
+- Import/Export Excel: `maatwebsite/excel` (lihat `app/Imports` / `app/Exports`)
+- Frontend: Vite + Tailwind (`package.json`)
+- Catatan env default: `DB_CONNECTION=sqlite` (`.env.example`) namun kode menggunakan fitur PostgreSQL (`ILIKE`, `DATE_TRUNC`) — lihat catatan DB di bawah.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Masalah
+-------
+Operasional membutuhkan mekanisme yang andal untuk memasukkan file Excel dunia nyata yang kotor, membersihkan dan menormalkan master (mitra, pengangkut, kendaraan), menghitung metrik domain (susut, FFA, dobi), menghindari duplikasi, dan menghasilkan laporan Excel yang dapat langsung dipakai pemangku kepentingan.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Solusi
+-------
+Aplikasi ini menyediakan:
+- Antarmuka admin Filament untuk mengelola master dan menjalankan aksi impor/ekspor.
+- Pipeline impor (`app/Imports/RekapDataImport.php`) yang mem-parsing baris Excel, menormalkan data, meresolusikan/membuat record master dengan pencocokan fuzzy (`app/Actions/ResolveRekapMasterData.php` + `app/Helpers/KodeGenerator.php`), menolak baris tidak valid, dan mencegah duplikasi (`app/Services/RekapDataImportService.php`).
+- Logika perhitungan yang dapat digunakan ulang di `app/Services/RekapDataCalculator.php` dan penegakan model di `app/Models/RekapData.php`.
+- Ekspor Excel multi-sheet berformat (`app/Exports/*`, `app/Exports/Sheets/*`) yang dioptimalkan untuk laporan bisnis.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Fitur Utama
+-----------
+- Impor Excel (parsing tahan banting, deduplikasi, resolusi master fuzzy)
+- CRUD master (Produk, Mitra, Pengangkut, Kendaraan) melalui Filament
+- Agregasi/bagian bulanan (Jan–Des) di Filament
+- Ekspor Excel multi-sheet (mode perusahaan / pemasok)
+- Otorisasi berbasis peran dan kebijakan akses
 
-## Learning Laravel
+Peran Pengguna
+---------------
+- `superadmin` — akses penuh
+- `admin` — impor/ekspor dan manajemen data
+- `staff`, `qc` — pengguna operasional (akses terbatas)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Alur Pengguna (contoh: impor)
+--------------------------------
+1. Admin membuka Filament → `Rincian Rekap Data` → klik `Import Excel`.
+2. Pilih file .xlsx lalu submit.
+3. Aksi Filament memanggil `Excel::import()` dengan `app/Imports/RekapDataImport.php`.
+4. Untuk tiap baris: validasi → parse tanggal → resolusi/buat master → hitung metrik → cek duplikasi → simpan `RekapData`.
+5. Filament menampilkan notifikasi berisi jumlah `inserted` dan `skipped` serta nomor dokumen terakhir.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Tumpukan Teknologi
+------------------
+- Backend: PHP 8.2+, Laravel ^12
+- UI Admin: Filament (Resources, Pages, Tables)
+- Excel: maatwebsite/excel + PhpSpreadsheet
+- Frontend: Vite, TailwindCSS
+- DB: relasional (migrasi tersedia). Kode menggunakan fitur PostgreSQL (mis. `ILIKE`, `DATE_TRUNC`) — perhatikan catatan DB.
 
-## Laravel Sponsors
+Arsitektur Sistem
+-----------------
+- Filament UI (resources/pages) → Aksi Import/Export → Lapisan Service/Action (`app/Services`, `app/Actions`) → Eloquent Models → Database.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Desain Database
+---------------
+Tabel utama (ringkasan):
+- `rekap_data` — catatan inti (no_dokumen, urutan_produk, tanggal, bruto_kirim, tara_kirim, netto_kebun, bruto, tara, netto, susut, susut_persen, ffa, dobi, produk_id, mitra_id, pengangkut_id, kendaraan_id). Ada constraint unik pada `['produk_id','urutan_produk']` dan index pada `tanggal`, `produk_id`, `mitra_id`, dll. Lihat `database/migrations/2026_01_05_073517_create-rekap-data-table.php`.
+- `produk` — `nama_produk`, `kode_produk` (unik)
+- `mitra` — `nama_mitra`, `kode_mitra` (unik), enum `tipe_mitra`
+- `pengangkut` — `nama_pengangkut`, `kode` (unik)
+- `kendaraan` — `no_pol`, `nama_supir`, `pengangkut_id`
 
-### Premium Partners
+ERD (mermaid)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```mermaid
+erDiagram
+	PRODUK ||--o{ REKAP_DATA : has
+	MITRA ||--o{ REKAP_DATA : has
+	PENGANGKUT ||--o{ REKAP_DATA : has
+	KENDARAAN ||--o{ REKAP_DATA : has
+	PENGANGKUT ||--o{ KENDARAAN : owns
+	USERS ||--|| : "application users"
+```
 
-## Contributing
+Dokumentasi Fitur (ringkasan)
+----------------------------
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Fitur: Impor Excel
+- Tujuan: memasukkan Excel yang tidak bersih, menormalkan master, menghitung metrik, mencegah duplikasi.
+- Entry: Aksi Filament di `app/Filament/Resources/RincianRekapData/Pages/ListRincianRekapData.php`.
+- Pemroses: `app/Imports/RekapDataImport.php` (startRow=4, handling heading, validasi baris, parsing tanggal).
+- Resolusi master: `app/Actions/ResolveRekapMasterData.php` (firstOrCreate, pencocokan fuzzy untuk `pengangkut`).
+- Perhitungan: `app/Services/RekapDataCalculator.php`.
+- Cek duplikasi: `app/Services/RekapDataImportService::isDuplicate()`.
 
-## Code of Conduct
+Fitur: Ekspor Multi-sheet
+- Tujuan: menghasilkan laporan Excel siap pakai (All, Rekap, per Pengangkut/Mitra).
+- Entry: Aksi ekspor Filament di `app/Filament/Resources/RincianRekapData/Pages/ListRincianRekapData.php`.
+- Kelas inti: `app/Exports/RekapDataExport.php`, `app/Exports/CompanyExport.php`, `app/Exports/SupplierLuarExport.php`, dan builder sheet di `app/Exports/Sheets/`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Fitur: Agregasi Bulanan (Rekap Data)
+- Tujuan: menampilkan agregat Jan–Des untuk tahun/produk/mitra yang dipilih.
+- Implementasi: `app/Filament/Resources/RekapData/Pages/ListRekapData.php` membangun SUM per `bulan` dan menampilkan 12 baris; kolom tabel di `app/Filament/Resources/RekapData/Tables/RekapDataTable.php`.
 
-## Security Vulnerabilities
+Kode Sumber Penting
+--------------------
+- Pipeline impor: `app/Imports/RekapDataImport.php`
+- Resolusi master & logika fuzzy: `app/Actions/ResolveRekapMasterData.php`, `app/Helpers/KodeGenerator.php`
+- Perhitungan: `app/Services/RekapDataCalculator.php`, `app/Models/RekapData.php`
+- Ekspor & builder: `app/Exports/*`, `app/Exports/Sheets/*`
+- Resource Filament: `app/Filament/Resources/*`
+- Migrasi: `database/migrations/*`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Instalasi
+--------
+Clone repositori dan instal dependensi:
 
-## License
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+npm install
+npm run dev
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Catatan:
+- Jika Anda akan menggunakan PostgreSQL (direkomendasikan untuk fitur ekspor dan pencarian case-insensitive `ILIKE` serta `DATE_TRUNC`), buat database dan perbarui `.env`. `.env.example` memakai SQLite untuk percobaan lokal cepat.
+
+Konfigurasi Lingkungan
+----------------------
+- Salin `.env.example` → `.env` dan atur variabel DB. Contoh PostgreSQL:
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=rekap_data_qc
+DB_USERNAME=youruser
+DB_PASSWORD=yourpass
+```
+
+Menyiapkan Database
+--------------------
+Jalankan migrasi:
+
+```bash
+php artisan migrate
+```
+
+Untuk cepat memulai dengan sqlite (development), pastikan `database/database.sqlite` ada dan `.env` menggunakan `DB_CONNECTION=sqlite`.
+
+Menjalankan Aplikasi
+--------------------
+- Jalankan aplikasi:
+
+```bash
+php artisan serve
+npm run dev
+```
+
+- Buka Filament Admin (default `/admin` atau panel yang dikonfigurasi) dan masuk dengan user yang sudah di-seed atau buat akun baru. (TODO: tambahkan instruksi seeding jika diperlukan.)
+
+Pengujian
+---------
+Jalankan PHPUnit:
+
+```bash
+php artisan test
+```
+
+Tantangan & Solusi (ringkasan)
+-----------------------------
+1. Kualitas data & Excel yang berantakan — importer memiliki parsing yang tahan banting dan melewati baris yang tidak valid; rekomendasi: tambahkan laporan baris yang dilewati dan mode dry-run.
+2. Deteksi duplikasi — saat ini menggunakan pencocokan persis; pertimbangkan kunci ternormalisasi atau ambang fuzzy.
+3. Performa fuzzy-match — `KodeGenerator::findSimilarKode` memindai DB di PHP; pertimbangkan indeks trigram di DB atau token pra-hitung.
+4. Konkurensi pada pembuatan `urutan_produk` — risiko pelanggaran constraint unik; gunakan sequence DB/locking atau retry-on-conflict.
+5. Kompatibilitas DB — kode memakai fitur Postgres; dokumentasikan penggunaan Postgres atau buat fallback agar kompatibel dengan DB lain.
+
+Proses Pengembangan
+-------------------
+Dari kode terkonfirmasi:
+- Resource dan halaman Filament ada, impor/ekspor diimplementasikan, migrasi tersedia (lihat `database/migrations`).
+
+Estimasi urutan pengerjaan (kemungkinan):
+1. Kebutuhan & desain DB
+2. Scaffolding proyek & Filament
+3. CRUD master
+4. Engine impor + resolusi master
+5. Builder ekspor/laporan
+6. Validasi, polishing, testing, deploy
+
+Sorotan Portofolio
+------------------
+- Pipeline ingest data yang solid (parsing Excel + resolusi master fuzzy)
+- Ekspor Excel multi-sheet berformat untuk pemangku kepentingan
+- Pemisahan tanggung jawab yang baik: Actions/Services/Helpers
